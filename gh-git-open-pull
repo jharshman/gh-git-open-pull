@@ -1,0 +1,34 @@
+#!/bin/bash
+set -e
+
+logfile='/tmp/gh-git-open-pull.log'
+baseBranch='master'
+userName=$(git config --local --get user.name)
+
+gh issue create --assignee @me > /tmp/issueCreated
+status=$?
+if [[ $status != 0 ]]; then
+  echo "Error creating issue."
+  exit $status
+fi
+
+issueNumber=$(cat /tmp/issueCreated | awk -F'/' '{print $NF}')
+rm /tmp/issueCreated
+
+branchName=$(git branch --show-current)
+git branch -m $(printf "%s_%s" $branchName $issueNumber)
+branchName=$(git branch --show-current)
+
+git push $userName $branchName
+
+head=$(printf "%s:%s" $userName $branchName)
+gh api -XPOST /repos/{owner}/{repo}/pulls \
+  -F base=$baseBranch \
+  -F head=$head \
+  -F issue=$issueNumber > /tmp/gh-git-open-pull.log
+
+status=$?
+if [[ $status != 0 ]]; then
+  printf "There was an error creating your PR. See log: %s\n" $logfile
+  exit 1
+fi
