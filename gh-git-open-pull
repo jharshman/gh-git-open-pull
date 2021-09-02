@@ -9,7 +9,7 @@ set -e
 # This helps find branches associated with PRs.
 #
 # This extension mirrors high level functionality of jehiah/git-open-pull.
-#
+# 
 
 logfile='/tmp/gh-git-open-pull.log'
 baseBranch='master'
