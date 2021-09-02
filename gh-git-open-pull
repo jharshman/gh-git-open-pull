@@ -1,11 +1,28 @@
 #!/bin/bash
 set -e
 
+#
+# gh-git-open-pull
+# 
+# A GitHub CLI extension automating the opening of a PR based on a created issue number.
+# The Bitly PR "standard" workflow renames feature branches with the issue/PR number suffixed.
+# This helps find branches associated with PRs.
+#
+# This extension mirrors high level functionality of jehiah/git-open-pull.
+#
+
 logfile='/tmp/gh-git-open-pull.log'
 baseBranch='master'
 userName=$(git config --local --get user.name)
 
-gh issue create --assignee @me > /tmp/issueCreated
+# create issue
+labels=$(gh api /repos/{owner}/{repo}/labels --paginate --jq .[].name | fzf -m --header="select labels (tab/shift-tab to multi-select)")
+labelopt=()
+for l in $labels; do
+  opt=$(printf " -l %s" $l)
+  labelopt=($labelopt $opt)
+done
+gh issue create --assignee @me $labelopt > /tmp/issueCreated
 status=$?
 if [[ $status != 0 ]]; then
   echo "Error creating issue."
@@ -15,12 +32,16 @@ fi
 issueNumber=$(cat /tmp/issueCreated | awk -F'/' '{print $NF}')
 rm /tmp/issueCreated
 
+# rename branch
 branchName=$(git branch --show-current)
 git branch -m $(printf "%s_%s" $branchName $issueNumber)
 branchName=$(git branch --show-current)
 
-git push $userName $branchName
+# push to remote
+remote=$(git remote -v | cut -d' ' -f1 | uniq | fzf --header="select remote" | awk -F' ' '{print $1}')
+git push $remote $branchName
 
+# create pull request
 head=$(printf "%s:%s" $userName $branchName)
 gh api -XPOST /repos/{owner}/{repo}/pulls \
   -F base=$baseBranch \
@@ -32,3 +53,4 @@ if [[ $status != 0 ]]; then
   printf "There was an error creating your PR. See log: %s\n" $logfile
   exit 1
 fi
+
