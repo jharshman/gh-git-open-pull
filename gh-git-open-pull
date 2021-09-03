@@ -73,7 +73,7 @@ prLink=$(gh api -XPOST /repos/{owner}/{repo}/pulls \
   -F base=$baseBranch \
   -F head=$head \
   -F issue=$issueNumber \
-  --jq .html_url > $logfile)
+  --jq .html_url)
 
 status=$?
 if [[ $status != 0 ]]; then
