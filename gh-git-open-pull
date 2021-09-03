@@ -42,7 +42,7 @@ sed -i '/#/d' $tmpfileBody
 
 gh issue create \
   --assignee @me \
-  "$labelopt[@]" \
+  "${labelopt[@]}" \
   --title="$issueTitle" \
   --body-file=$tmpfileBody > /tmp/issueCreated
 status=$?
