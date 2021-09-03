@@ -65,14 +65,17 @@ git push $remote $branchName
 
 # create pull request
 head=$(printf "%s:%s" $userName $branchName)
-gh api -XPOST /repos/{owner}/{repo}/pulls \
+prLink=$(gh api -XPOST /repos/{owner}/{repo}/pulls \
   -F base=$baseBranch \
   -F head=$head \
-  -F issue=$issueNumber > /tmp/gh-git-open-pull.log
+  -F issue=$issueNumber \
+  --jq .html_url > $logfile)
 
 status=$?
 if [[ $status != 0 ]]; then
   printf "There was an error creating your PR. See log: %s\n" $logfile
   exit 1
 fi
+
+printf "\nPR created: %s\n" $prLink
 
