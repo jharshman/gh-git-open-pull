@@ -11,18 +11,40 @@ set -e
 # This extension mirrors high level functionality of jehiah/git-open-pull.
 # 
 
+FZF_DEFAULT_OPTS='--height=20% --border'
+
 logfile='/tmp/gh-git-open-pull.log'
+tmpfileBody='/tmp/gh-git-open-pull.body'
 baseBranch='master'
-userName=$(git config --local --get user.name)
+userName=$(git config --local --get user.name || :)
+if [[ $useName == "" ]]; then
+  # local not found, try global git config
+  userName=$(git config --get user.name || :)
+  if [[ $userName == "" ]]; then
+    # user.name not found, error
+    echo "error obtaining user.name entry from git config"
+    exit 1
+  fi
+fi
 
 # create issue
-labels=$(gh api /repos/{owner}/{repo}/labels --paginate --jq .[].name | fzf -m --header="select labels (tab/shift-tab to multi-select)")
+labels=$(gh api /repos/{owner}/{repo}/labels --paginate --jq .[].name | fzf --height=20% --border --layout=reverse -m --header="select labels (tab/shift-tab to multi-select)")
 labelopt=()
 for l in $labels; do
   opt=$(printf " -l=%s" $l)
   labelopt+=($opt)
 done
-gh issue create --assignee @me $labelopt > /tmp/issueCreated # todo: needs title and body
+
+read -p "Issue Title: " issueTitle
+printf "# Enter Issue Body\n# Lines starting with # will be ignored.\n" > $tmpfileBody
+$EDITOR $tmpfileBody
+sed -i '/#/d' $tmpfileBody
+
+gh issue create \
+  --assignee @me \
+  "${labelopt[@]}" \
+  --title="$issueTitle" \
+  --body-file=$tmpfileBody > /tmp/issueCreated
 status=$?
 if [[ $status != 0 ]]; then
   echo "Error creating issue."
@@ -38,7 +60,7 @@ git branch -m $(printf "%s_%s" $branchName $issueNumber)
 branchName=$(git branch --show-current)
 
 # push to remote
-remote=$(git remote -v | cut -d' ' -f1 | uniq | fzf --header="select remote" | awk -F' ' '{print $1}')
+remote=$(git remote -v | cut -d' ' -f1 | uniq | fzf --height=20% --border --layout=reverse --header="select remote" | awk -F' ' '{print $1}')
 git push $remote $branchName
 
 # create pull request
