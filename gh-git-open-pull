@@ -19,10 +19,10 @@ userName=$(git config --local --get user.name)
 labels=$(gh api /repos/{owner}/{repo}/labels --paginate --jq .[].name | fzf -m --header="select labels (tab/shift-tab to multi-select)")
 labelopt=()
 for l in $labels; do
-  opt=$(printf " -l %s" $l)
-  labelopt=($labelopt $opt)
+  opt=$(printf " -l=%s" $l)
+  labelopt+=($opt)
 done
-gh issue create --assignee @me $labelopt > /tmp/issueCreated
+gh issue create --assignee @me $labelopt > /tmp/issueCreated # todo: needs title and body
 status=$?
 if [[ $status != 0 ]]; then
   echo "Error creating issue."
