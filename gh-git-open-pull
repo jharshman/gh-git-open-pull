@@ -9,9 +9,13 @@ set -e
 # This helps find branches associated with PRs.
 #
 # This extension mirrors high level functionality of jehiah/git-open-pull.
-# 
+#
 
-FZF_DEFAULT_OPTS='--height=20% --border'
+which fzf > /dev/null 2>&1
+if [[ $? != 0 ]]; then
+  echo "fzf required but not found in PATH"
+  exit 1
+fi
 
 logfile='/tmp/gh-git-open-pull.log'
 tmpfileBody='/tmp/gh-git-open-pull.body'
