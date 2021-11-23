@@ -41,6 +41,7 @@ done
 
 read -p "Issue Title: " issueTitle
 printf "# Enter Issue Body\n# Lines starting with # will be ignored.\n" > $tmpfileBody
+git log -1 --pretty=%B >> $tmpfileBody
 $EDITOR $tmpfileBody
 sed -i '/#/d' $tmpfileBody
 
