@@ -1,0 +1,16 @@
+diff --git a/gh-git-open-pull b/gh-git-open-pull
+index 5890c22..0b89a11 100755
+--- a/gh-git-open-pull
++++ b/gh-git-open-pull
+@@ -60,9 +60,9 @@ issueNumber=$(cat /tmp/issueCreated | awk -F'/' '{print $NF}')
+ rm /tmp/issueCreated
+ 
+ # rename branch
+-branchName=$(git branch --show-current)
++branchName=$(git branch | head -n1 | awk '{print $2}')
+ git branch -m $(printf "%s_%s" $branchName $issueNumber)
+-branchName=$(git branch --show-current)
++branchName=$(git branch | head -n1 | awk '{print $2}')
+ 
+ # push to remote
+ remote=$(git remote -v | cut -d' ' -f1 | uniq | fzf --height=20% --border --layout=reverse --header="select remote" | awk -F' ' '{print $1}')
