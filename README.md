@@ -16,7 +16,7 @@ gh extension install jharshman/gh-git-open-pull
 gh git-open-pull
 
 ## Older Git Versions
-Older versions of `git` that do not have the `git branch --show-current` option will need the included patch applied.
+The included patchfile will need to be applied if using older versions of `git` that do not have the `git branch --show-current` option.
 ```bash
 $ patch -i 001-older-git-versions.patch
 ```
